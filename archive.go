@@ -73,7 +73,49 @@ func createArchive(sourceDir, outputBase string, compressionType compressionType
 	}
 	tarWriter := tar.NewWriter(compressWriter)
 
-	if err := tarWriter.AddFS(os.DirFS(sourceDir)); err != nil {
+	// Use a custom walk function to avoid embedding user/group info into the archive.
+	dirFS := os.DirFS(sourceDir)
+	err = fs.WalkDir(dirFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == "." {
+			return nil
+		}
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && !info.Mode().IsRegular() {
+			return fmt.Errorf("failed to handle non-regular file %s", path)
+		}
+		h, err := tar.FileInfoHeader(info, "")
+		if err != nil {
+			return err
+		}
+		h.Name = path
+		if d.IsDir() {
+			h.Name += "/"
+		}
+		h.Uid = 0
+		h.Uname = ""
+		h.Gid = 0
+		h.Gname = ""
+		if err := tarWriter.WriteHeader(h); err != nil {
+			return err
+		}
+		if info.Mode().IsRegular() {
+			f, err := dirFS.Open(path)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			_, err = io.Copy(tarWriter, f)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return err
 	}
 	if err := tarWriter.Close(); err != nil {
