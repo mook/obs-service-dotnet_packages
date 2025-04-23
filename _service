@@ -3,7 +3,7 @@
   <service name="obs_scm">
     <param name="scm">git</param>
     <param name="url">https://github.com/mook/obs-service-dotnet_packages.git</param>
-    <param name="revision">@PARENT_TAG@</param>
+    <param name="revision">main</param>
     <param name="versionformat">@PARENT_TAG@</param>
     <param name="changesgenerate">enable</param>
   </service>
