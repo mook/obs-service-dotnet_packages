@@ -20,7 +20,7 @@ var options struct {
 
 func initializeOptions() error {
 	options.compression = compressionTypeGZip
-	flag.BoolVar(&options.verbose, "verbose", true, "Enable extra logging")
+	flag.BoolVar(&options.verbose, "verbose", false, "Enable extra logging")
 	flag.StringVar(&options.tag, "tag", "9.0", "dotnet version to run")
 	flag.StringVar(&options.archive, "archive", "", "Source code archive to scan for references")
 	flag.Var(&options.compression, "compression", "Compression to use")
